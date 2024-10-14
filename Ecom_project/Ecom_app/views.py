@@ -86,6 +86,10 @@ class Get_Create_Update_Delete_Order(APIView):
     
     def delete(self,request,pk):
         get_order=OrderModel.objects.get(id=pk)
+        if get_order.is_cashon:
+            get_order.is_cancelled=True
+            get_order.save()
+        get_order.save()
         if get_order.is_refunded:
             return Response("Order Already Cancelled and refund initiated, will be refunded in 3-5 working days")
         get_pay_id = Payment_details.objects.get(order=get_order)
@@ -101,7 +105,6 @@ class Get_Create_Update_Delete_Order(APIView):
                 'content-type': 'application/json',
                 'Accept': 'application/json'}
         url_response = requests.post(url, json=data,headers=header)
-        # print(url_response._content)
         get_order.is_cancelled=True
         get_order.is_refunded=True
         get_order.save()
@@ -205,16 +208,18 @@ class CashOnDelivery(APIView):
     
 class Deliverd_Item(APIView):
     def post(self,request):
+        # import pdb; pdb.set_trace()
         serialize_data = Deliverd_Item_Serializer(data=request.data)
         if serialize_data.is_valid():
             get_order = OrderModel.objects.get(id=serialize_data.validated_data['order_id'])
-            if get_order.is_delivered:
+            if get_order.is_delivered==False:
+                get_track = Order_Tracking.objects.get(order=get_order.id)
+                get_track.delete()
                 get_order.is_delivered=True
                 if get_order.is_cashon:
                     get_order.paid_at=datetime.datetime.now()
                     get_order.paid_status=True
                 get_order.save()
-                Order_Tracking.objects.get(order=get_order).delete()
                 return Response("Order Delivered Succefully")
             return Response("Order Already Delivered")
         

@@ -58,4 +58,4 @@ class Payment_details(models.Model):
 class Order_Tracking(models.Model):
     order = models.ForeignKey("OrderModel", on_delete=models.CASCADE,null=True)
     user = models.ForeignKey(User,  on_delete=models.CASCADE)
-    current_hub = models.CharField( max_length=50,default="Waiting for courrier agent to pick-up")
+    current_hub = models.CharField( max_length=50,default="Waiting for courrier agent to pick-up") 
