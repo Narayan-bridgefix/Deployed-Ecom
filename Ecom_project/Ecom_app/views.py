@@ -256,3 +256,12 @@ class Cancelled_Order(APIView):
         get_orders = OrderModel.objects.filter(is_cancelled=True,user=user)
         order_serialize = Order_Serializer(get_orders,many=True)
         return Response(order_serialize.data)
+    
+class Delivered_Order(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self,request):
+        user = User.objects.get(username=request.user)
+        get_orders = OrderModel.objects.filter(is_delivered=True,user=user)
+        order_serialize = Order_Serializer(get_orders,many=True)
+        return Response(order_serialize.data)

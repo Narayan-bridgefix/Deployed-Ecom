@@ -19,6 +19,7 @@ urlpatterns = [
     path('delivered_item/',Deliverd_Item.as_view()),
     path('update_tracking/',Update_Tracking_Status.as_view()),
     path('order-cancelled/',Cancelled_Order.as_view()),
+    path('order-delivered/',Delivered_Order.as_view()),
 
 ]
 
