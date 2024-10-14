@@ -72,6 +72,7 @@ class Registe_User(APIView):
 class Get_Create_Update_Delete_Order(APIView):
     permission_classes = [IsAuthenticated]
     def get(self,request):
+        # import pdb; pdb.set_trace()
         user = User.objects.get(username=request.user)
         all_order = OrderModel.objects.filter(user=user,is_cancelled=False,is_delivered=False)
         order_serialize = Order_Serializer(all_order,many=True)
@@ -85,13 +86,17 @@ class Get_Create_Update_Delete_Order(APIView):
     #     return Response(order_serialize.errors)
     
     def delete(self,request,pk):
+        # import pdb; pdb.set_trace()
         get_order=OrderModel.objects.get(id=pk)
+        if get_order.is_refunded:
+            return Response("Order Already Cancelled and refund initiated, will be refunded in 3-5 working days")
+        if get_order.is_cancelled:
+            return Response("Order Already Cancelled")
         if get_order.is_cashon:
             get_order.is_cancelled=True
             get_order.save()
+            return Response("Order Cancel Successfully")
         get_order.save()
-        if get_order.is_refunded:
-            return Response("Order Already Cancelled and refund initiated, will be refunded in 3-5 working days")
         get_pay_id = Payment_details.objects.get(order=get_order)
         amount = get_pay_id.price*100
         ##REFUND and CANCEL
@@ -242,3 +247,12 @@ class Update_Tracking_Status(APIView):
         print(all_track)
         track_serialize = Get_Tracking_Serializer(all_track,many=True)
         return Response(track_serialize.data)
+    
+class Cancelled_Order(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self,request):
+        user = User.objects.get(username=request.user)
+        get_orders = OrderModel.objects.filter(is_cancelled=True,user=user)
+        order_serialize = Order_Serializer(get_orders,many=True)
+        return Response(order_serialize.data)
