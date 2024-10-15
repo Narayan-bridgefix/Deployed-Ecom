@@ -10,15 +10,13 @@ from django.dispatch import receiver
 import razorpay
 from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from django.core.mail import send_mail
+# from sinchsms import SinchSMS 
 
 # Creating Token while Registration by signal
 @receiver(post_save,sender=settings.AUTH_USER_MODEL)
 def generate_token(sender,instance,created=False,**kwarg):
     if created:
         Token.objects.create(user=instance)
-
-
-
 class Create_Update_Delete_Product(APIView):
     permission_classes = [IsAdminUser]
     def post(self,request):
@@ -298,6 +296,15 @@ class Update_Tracking_Status(APIView):
             [user.email],
             fail_silently=False, auth_user=settings.EMAIL_HOST_USER, auth_password=settings.EMAIL_HOST_PASSWORD,connection=None, html_message=None
             )
+            #send msg
+            import requests
+            url = "https://api.twilio.com/2010-04-01/Accounts/AC91346b5d531cbdb119b084e764d06e09/Messages.json"
+            payload = f'To=%20916265306274&From=%2018507417695&Body=Your Order Arrived at :- {curr_hub}'
+            headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic QUM5MTM0NmI1ZDUzMWNiZGIxMTliMDg0ZTc2NGQwNmUwOTo5NDdjNDMzOTE1MmM2MTk1ZDQ3YzQxNDk4NDcwMmI2Zg=='
+            }
+            response = requests.request("POST", url, headers=headers, data=payload)
             return Response("Hub update succefully")
         return track_serialize.errors
     
