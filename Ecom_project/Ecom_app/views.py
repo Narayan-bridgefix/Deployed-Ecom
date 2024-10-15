@@ -192,7 +192,6 @@ class Payment(APIView):
                 'content-type': 'application/json',
                 'Accept': 'application/json'}
         url_response = requests.post(url, json=data,headers=header)
-        print(url_response._content)
         _data = url_response._content
         _id =  json.loads(_data.decode('utf-8'))['id']
         _short_url =  json.loads(_data.decode('utf-8'))['short_url']
@@ -210,12 +209,21 @@ class Callback_fuc(APIView):
             user = User.objects.get(username=user_from_paymane_detail.user)
             cartt = Cart_Order.objects.filter(user=user)
             user_from_paymane_detail.delete()
+            order_list = []
             for cart in cartt:
                 order=OrderModel.objects.create(ordered_item=cart.product,ordered_address=cart.address,user=user,paid_status=True,paid_at=datetime.datetime.now())
                 order.save()
                 Order_Tracking.objects.create(user=user,order=order)
                 Payment_details.objects.create(pay_link=request.query_params['razorpay_payment_link_id'],order=order,user=user,pay_id=request.query_params['razorpay_payment_id'],price=cart.price)
+                order_list.append(cart.product.name)
             cartt.delete()
+            send_mail(
+            f'Welcome {user.first_name} !',
+            f'Your order is  Successfully Placed. Order {order_list}',
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False, auth_user=settings.EMAIL_HOST_USER, auth_password=settings.EMAIL_HOST_PASSWORD,connection=None, html_message=None
+            )
             return HttpResponse("Payment Done Succefully")
         
 class CashOnDelivery(APIView):
@@ -223,14 +231,24 @@ class CashOnDelivery(APIView):
     def post(self,request):
         user = User.objects.get(username=request.user)
         cartt = Cart_Order.objects.filter(user=user)
+        order_list = []
         if cartt:
             for cart in cartt:
+                order_list.append(cart.product.name)
                 order=OrderModel.objects.create(ordered_item=cart.product,ordered_address=cart.address,user=user,paid_status=True,paid_at=datetime.datetime.now())
                 order.save()
                 Order_Tracking.objects.create(user=user,order=order)
             cartt.delete()
+            send_mail(
+            f'Welcome {user.first_name} !',
+            f'Your order is  Successfully Placed. Order {order_list}',
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False, auth_user=settings.EMAIL_HOST_USER, auth_password=settings.EMAIL_HOST_PASSWORD,connection=None, html_message=None
+            )
             return Response({"order":"Placed succefully",
                             "payment":"Cash on delivery"})
+        
         return Response("Cart is Empty")
     
 class Deliverd_Item(APIView):
