@@ -13,9 +13,10 @@ class Order_Serializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class Register_User_Serializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
     class Meta:
         model = User
-        fields =  ('username', 'password', 'first_name', 'last_name')
+        fields =  ('username', 'password', 'first_name', 'last_name','email')
     def create(self, validated_data):
         user = super().create(validated_data)
         user.set_password(validated_data['password'])

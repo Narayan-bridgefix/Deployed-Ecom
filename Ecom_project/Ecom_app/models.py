@@ -35,6 +35,9 @@ class Cart_Order(models.Model):
     price = models.IntegerField(default=0)
     quantity = models.IntegerField(default=1)
     
+    def __str__(self):
+        return str(self.product) + "   Quantity:- "+str(self.quantity)
+    
 class BillingAddress(models.Model):
     name = models.CharField(max_length=200, null=False, blank=False)
     user = models.ForeignKey(User, related_name="billingmodel", on_delete=models.CASCADE, null=True, blank=True)
