@@ -2,9 +2,13 @@ from django.urls import path
 from .views import *
 from django.conf.urls.static import static
 from django.conf import settings
+from django.http import HttpResponse
+def Hello(request):
+    return HttpResponse("Welcome to Ecom Project you can only hit api Ui will not show")
 
 
 urlpatterns = [
+ 	path('',Hello),
     path('product/',Create_Update_Delete_Product.as_view()),
     path('product-list/',Get_Product.as_view()),
     path('product-UpdateorDelete/<int:pk>/',Create_Update_Delete_Product.as_view()),
